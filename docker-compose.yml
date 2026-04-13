@@ -1,0 +1,142 @@
+services:
+  api-gateway:
+    build: ./services/api_gateway
+    container_name: api-gateway
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=api-gateway
+      - DB_NAME=${GATEWAY_DB_NAME}
+      - DB_USER=${GATEWAY_DB_USER}
+      - DB_PASSWORD=${GATEWAY_DB_PASSWORD}
+      - DB_HOST=${GATEWAY_DB_HOST}
+      - DB_PORT=${GATEWAY_DB_PORT}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - POST_SERVICE_URL=${POST_SERVICE_URL}
+      - COMMENT_SERVICE_URL=${COMMENT_SERVICE_URL}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./services/api_gateway:/app
+    depends_on:
+      - gateway-db
+
+  user-service:
+    build: ./services/user_service
+    container_name: user-service
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=user-service
+      - DB_NAME=${USER_DB_NAME}
+      - DB_USER=${USER_DB_USER}
+      - DB_PASSWORD=${USER_DB_PASSWORD}
+      - DB_HOST=${USER_DB_HOST}
+      - DB_PORT=${USER_DB_PORT}
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+    volumes:
+      - ./services/user_service:/app
+    depends_on:
+      - user-db
+
+  post-service:
+    build: ./services/post_service
+    container_name: post-service
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=post-service
+      - DB_NAME=${POST_DB_NAME}
+      - DB_USER=${POST_DB_USER}
+      - DB_PASSWORD=${POST_DB_PASSWORD}
+      - DB_HOST=${POST_DB_HOST}
+      - DB_PORT=${POST_DB_PORT}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - JWT_SHARED_SECRET=${DJANGO_SECRET_KEY}
+    ports:
+      - "8002:8000"
+    restart: unless-stopped
+    volumes:
+      - ./services/post_service:/app
+    depends_on:
+      - post-db
+
+  comment-service:
+    build: ./services/comment_service
+    container_name: comment-service
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=comment-service
+      - DB_NAME=${COMMENT_DB_NAME}
+      - DB_USER=${COMMENT_DB_USER}
+      - DB_PASSWORD=${COMMENT_DB_PASSWORD}
+      - DB_HOST=${COMMENT_DB_HOST}
+      - DB_PORT=${COMMENT_DB_PORT}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - POST_SERVICE_URL=${POST_SERVICE_URL}
+      - JWT_SHARED_SECRET=${DJANGO_SECRET_KEY}
+    ports:
+      - "8003:8000"
+    restart: unless-stopped
+    volumes:
+      - ./services/comment_service:/app
+    depends_on:
+      - comment-db
+
+  gateway-db:
+    image: postgres:16-alpine
+    container_name: gateway-db
+    environment:
+      POSTGRES_DB: ${GATEWAY_DB_NAME}
+      POSTGRES_USER: ${GATEWAY_DB_USER}
+      POSTGRES_PASSWORD: ${GATEWAY_DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - gateway_db_data:/var/lib/postgresql/data
+
+  user-db:
+    image: postgres:16-alpine
+    container_name: user-db
+    environment:
+      POSTGRES_DB: ${USER_DB_NAME}
+      POSTGRES_USER: ${USER_DB_USER}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+
+  post-db:
+    image: postgres:16-alpine
+    container_name: post-db
+    environment:
+      POSTGRES_DB: ${POST_DB_NAME}
+      POSTGRES_USER: ${POST_DB_USER}
+      POSTGRES_PASSWORD: ${POST_DB_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - post_db_data:/var/lib/postgresql/data
+
+  comment-db:
+    image: postgres:16-alpine
+    container_name: comment-db
+    environment:
+      POSTGRES_DB: ${COMMENT_DB_NAME}
+      POSTGRES_USER: ${COMMENT_DB_USER}
+      POSTGRES_PASSWORD: ${COMMENT_DB_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - comment_db_data:/var/lib/postgresql/data
+
+volumes:
+  gateway_db_data:
+  user_db_data:
+  post_db_data:
+  comment_db_data:
