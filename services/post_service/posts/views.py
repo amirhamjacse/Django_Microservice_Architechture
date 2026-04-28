@@ -55,9 +55,12 @@ class PostViewSet(viewsets.ModelViewSet):
         try:
             self.perform_create(serializer)
         except PermissionError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"detail": str(exc)}, status=status.HTTP_401_UNAUTHORIZED)
         except ValueError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+                )
         except requests.RequestException:
             return Response(
                 {"detail": "user-service unavailable"},
